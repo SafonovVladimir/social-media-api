@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     "drf_spectacular",
     "rest_framework",
     "debug_toolbar",
-    "social_media",
+    "posts",
     "user",
 ]
 
@@ -158,7 +158,7 @@ SPECTACULAR_SETTINGS = {
 }
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=500),  # TODO: change to 5
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=10),  # TODO: change to 1
     "ROTATE_REFRESH_TOKENS": False,
 }

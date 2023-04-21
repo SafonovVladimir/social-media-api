@@ -4,7 +4,13 @@ from django.contrib.auth import get_user_model, authenticate
 from rest_framework import serializers
 from django.utils.translation import gettext as _
 
-from user.models import User
+from user.models import User, UserProfile
+
+
+class UserListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = get_user_model()
+        fields = ("first_name", "last_name", "email")
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -57,3 +63,21 @@ class AuthTokenSerializer(serializers.Serializer):
 
         attrs["user"] = user
         return attrs
+
+
+class UserProfileListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = (
+            "id",
+            "bio",
+            "city",
+            "phone",
+            "birthday",
+            "image",
+            "followers",
+        )
+
+
+class UserProfileDetailSerializer(UserProfileListSerializer):
+    followers = UserListSerializer(many=True, read_only=True)
