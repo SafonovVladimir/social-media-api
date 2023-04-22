@@ -11,7 +11,7 @@ from .serializers import PostSerializer
 class PostListView(generics.ListAPIView):
     serializer_class = PostSerializer
     permission_classes = [IsAuthenticated]
-    queryset = Post.objects.all().select_related("hashtags")
+    queryset = Post.objects.select_related("hashtags")
 
     def get_queryset(self):
         """Retrieve the posts with filters"""

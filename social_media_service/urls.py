@@ -22,10 +22,6 @@ from drf_spectacular.views import (SpectacularAPIView, SpectacularSwaggerView)
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    # path(
-    #     "api/posts/",
-    #     include("posts.urls", namespace="social-media")
-    # ),
     path("api/user/", include("user.urls", namespace="user")),
     path("api/post/", include("posts.urls", namespace="post")),
     path("api/doc/", SpectacularAPIView.as_view(), name="schema"),
@@ -34,5 +30,5 @@ urlpatterns = [
         SpectacularSwaggerView.as_view(url_name="schema"),
         name="swagger"
     ),
-    path("__debug__/", include("debug_toolbar.urls")),
+    path('__debug__/', include('debug_toolbar.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

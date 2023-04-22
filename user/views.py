@@ -46,7 +46,9 @@ class UserProfileViewSet(
     mixins.UpdateModelMixin,
     viewsets.GenericViewSet,
 ):
-    queryset = UserProfile.objects.all().prefetch_related("followers")
+    queryset = (UserProfile.objects
+                .prefetch_related("followers")
+                .select_related("user"))
     serializer_class = UserProfileListSerializer
     permission_classes = (IsAuthenticated,)
 
@@ -96,15 +98,15 @@ class UserProfileViewSet(
 
 
 class UserFollowViewSet(mixins.ListModelMixin, viewsets.GenericViewSet,):
-    queryset = get_user_model().objects.all()
+    queryset = get_user_model().objects.select_related("profile")
     serializer_class = UserListSerializer
     permission_classes = (IsAuthenticated,)
 
 
 class UserFollowersViewSet(UserFollowViewSet):
     def get_queryset(self):
-        my_user = get_user_model().objects.get(id=self.request.user.id)
-        return my_user.profile.followers.all()
+        user = self.queryset.get(id=self.request.user.id)
+        return user.profile.followers
 
 
 class UserFollowingsViewSet(UserFollowViewSet):
