@@ -27,7 +27,11 @@ class Post(models.Model):
         related_name="posts"
     )
     content = models.CharField(max_length=255)
-    image = models.ImageField(upload_to=movie_image_file_path, blank=True, null=True)
+    image = models.ImageField(
+        upload_to=movie_image_file_path,
+        blank=True,
+        null=True
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     hashtags = models.ManyToManyField("Hashtag", blank=True)
 
