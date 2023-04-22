@@ -1,7 +1,9 @@
 from typing import Type
 
 from django.contrib.auth import get_user_model
+from django.db.models import QuerySet
 from django.http import HttpResponse
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import generics, viewsets, mixins, status
 from rest_framework.decorators import api_view
 from rest_framework.permissions import IsAuthenticated
@@ -14,7 +16,8 @@ from user.serializers import (
     UserSerializer,
     AuthTokenSerializer,
     UserProfileListSerializer,
-    UserProfileDetailSerializer, UserListSerializer,
+    UserProfileDetailSerializer,
+    UserListSerializer,
 )
 from user.models import UserProfile
 
@@ -43,9 +46,23 @@ class UserProfileViewSet(
     mixins.UpdateModelMixin,
     viewsets.GenericViewSet,
 ):
-    queryset = UserProfile.objects.all()
+    queryset = UserProfile.objects.all().prefetch_related("followers")
     serializer_class = UserProfileListSerializer
     permission_classes = (IsAuthenticated,)
+
+    def get_queryset(self) -> QuerySet:
+        """Retrieve the users profiles with filters"""
+        phone = self.request.query_params.get("phone")
+        birthday = self.request.query_params.get("birthday")
+
+        queryset = self.queryset
+
+        if phone:
+            queryset = queryset.filter(phone__icontains=phone)
+        if birthday:
+            queryset = queryset.filter(birthday__year=birthday)
+
+        return queryset.distinct()
 
     def get_serializer_class(self) -> Type[Serializer]:
         if self.action == "list":
@@ -54,13 +71,28 @@ class UserProfileViewSet(
         if self.action == "retrieve":
             return UserProfileDetailSerializer
 
-        # if self.action == "upload_image":
-        #     return MovieImageSerializer
-
         return UserProfileListSerializer
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+    # only for documentation purposes
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "phone",
+                type={"type": "list", "items": {"type": "number"}},
+                description="Filter by phone or number (ex. ?phone=123)"
+            ),
+            OpenApiParameter(
+                "birthday",
+                type={"type": "list", "items": {"type": "number"}},
+                description="Filter by birthday or year (ex. ?birthday=2000)"
+            ),
+        ]
+    )
+    def list(self, request, *args, **kwargs) -> list:
+        return super().list(request, *args, **kwargs)
 
 
 class UserFollowViewSet(mixins.ListModelMixin, viewsets.GenericViewSet,):

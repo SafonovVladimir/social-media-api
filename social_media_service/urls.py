@@ -27,6 +27,7 @@ urlpatterns = [
     #     include("posts.urls", namespace="social-media")
     # ),
     path("api/user/", include("user.urls", namespace="user")),
+    path("api/post/", include("posts.urls", namespace="post")),
     path("api/doc/", SpectacularAPIView.as_view(), name="schema"),
     path(
         "api/doc/swagger/",

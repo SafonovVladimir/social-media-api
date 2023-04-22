@@ -42,6 +42,9 @@ class UserManager(BaseUserManager):
 
         return self._create_user(email, password, **extra_fields)
 
+    @property
+    def full_name(self):
+        return self.first_name + " " + self.last_name
 
 class User(AbstractUser):
     """User model."""
