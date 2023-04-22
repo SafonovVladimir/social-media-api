@@ -174,7 +174,7 @@ SIMPLE_JWT = {
 }
 
 CELERY_IMPORTS = [
-    'posts.tasks',
+    "posts.tasks",
 ]
 
 CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL")

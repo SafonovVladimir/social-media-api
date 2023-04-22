@@ -86,11 +86,11 @@ class LikePost(APIView):
 
         if user in post.likes.all():
             post.likes.remove(user)
-            return Response({'message': 'Post unliked'},
+            return Response({"message": "Post unliked"},
                             status=status.HTTP_200_OK)
         else:
             post.likes.add(user)
-            return Response({'message': 'Post liked'},
+            return Response({"message": "Post liked"},
                             status=status.HTTP_200_OK)
 
 
