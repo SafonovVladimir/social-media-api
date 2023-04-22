@@ -1,11 +1,16 @@
+from django.core.exceptions import ValidationError
+from django.db.models import QuerySet
 from drf_spectacular.utils import extend_schema, OpenApiParameter
-from rest_framework import generics, viewsets
-from rest_framework.decorators import action
+from rest_framework import generics, viewsets, status
+from rest_framework.decorators import action, api_view
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from django.utils import timezone
+from rest_framework.views import APIView
 
-from .models import Post
-from .serializers import PostSerializer
+from .models import Post, Comment
+from .tasks import create_post
+from .serializers import PostSerializer, CommentSerializer
 
 
 class PostListView(generics.ListAPIView):
@@ -13,7 +18,7 @@ class PostListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     queryset = Post.objects.select_related("hashtags")
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet:
         """Retrieve the posts with filters"""
         followed_users = self.request.user.profile.followers.all()
         queryset = Post.objects.filter(author__in=followed_users)
@@ -62,3 +67,77 @@ class PostViewSet(viewsets.ModelViewSet):
         queryset = self.get_queryset().filter(author=request.user)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
+
+class CommentList(generics.ListCreateAPIView):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+
+
+class CommentDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+
+
+class LikePost(APIView):
+    def post(self, request, pk):
+        post = Post.objects.get(pk=pk)
+        user = request.user
+
+        if user in post.likes.all():
+            post.likes.remove(user)
+            return Response({'message': 'Post unliked'},
+                            status=status.HTTP_200_OK)
+        else:
+            post.likes.add(user)
+            return Response({'message': 'Post liked'},
+                            status=status.HTTP_200_OK)
+
+
+class LikedPostList(generics.ListAPIView):
+    serializer_class = PostSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        return user.liked_posts.all()
+
+
+@api_view(["POST"])
+def schedule_post(request, post_id: int) -> Response:
+    print(request.data)
+    print(post_id)
+    try:
+        post = Post.objects.get(id=post_id)
+        serializer = PostSerializer(post)
+    except Post.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    publish_time = request.data.get("publish_time")
+    print(publish_time)
+
+    if not publish_time:
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    try:
+        publish_time = timezone.make_aware(publish_time)
+    except ValueError:
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    try:
+        post.schedule_publish(publish_time)
+        create_post.apply_async(
+            args=[post.title, post.content],
+            eta=publish_time
+        )
+        return Response(
+            serializer.data,
+            status=status.HTTP_200_OK
+        )
+    except ValidationError:
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
