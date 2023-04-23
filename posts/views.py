@@ -1,12 +1,12 @@
 from django.core.exceptions import ValidationError
 from django.db.models import QuerySet
+from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import generics, viewsets, status
 from rest_framework.decorators import action, api_view
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.utils import timezone
-from rest_framework.views import APIView
 
 from .models import Post, Comment
 from .tasks import create_post
@@ -79,30 +79,16 @@ class CommentDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = CommentSerializer
 
 
-class LikePost(APIView):
-    def post(self, request, pk):
-        post = Post.objects.get(pk=pk)
-        user = request.user
-
-        if user in post.likes.all():
-            post.likes.remove(user)
-            return Response({"message": "Post unliked"},
-                            status=status.HTTP_200_OK)
-        else:
-            post.likes.add(user)
-            return Response({"message": "Post liked"},
-                            status=status.HTTP_200_OK)
-
-
 class LikedPostList(generics.ListAPIView):
     serializer_class = PostSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         user = self.request.user
-        return user.liked_posts.all()
+        return Post.objects.filter(likes=user)
 
 
-@api_view(["POST"])
+@api_view(["GET"])
 def schedule_post(request, post_id: int) -> Response:
     print(request.data)
     print(post_id)
@@ -141,3 +127,15 @@ def schedule_post(request, post_id: int) -> Response:
         )
     except ValidationError:
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["GET"])
+def like_post(request, pk):
+    post = get_object_or_404(Post, pk=pk)
+    user = request.user
+
+    if user in post.likes.all():
+        post.likes.remove(user)
+    else:
+        post.likes.add(user)
+    return Response(status=status.HTTP_200_OK)

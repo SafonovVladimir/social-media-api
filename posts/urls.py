@@ -3,7 +3,9 @@ from django.urls import path
 from .views import (
     CreatePostView,
     PostListView,
-    PostViewSet, schedule_post,
+    PostViewSet,
+    schedule_post,
+    like_post, LikedPostList,
 )
 
 app_name = "post"
@@ -17,4 +19,6 @@ urlpatterns = [
     ),
     path("create/", CreatePostView.as_view(), name="post-create"),
     path("<int:post_id>/schedule/", schedule_post, name="schedule_post"),
+    path("<int:pk>/like/", like_post, name="like-post"),
+    path("liked/", LikedPostList.as_view(), name="liked-post-list"),
 ]
