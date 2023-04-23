@@ -13,12 +13,19 @@ from .serializers import PostSerializer, CommentSerializer
 class PostListView(generics.ListAPIView):
     serializer_class = PostSerializer
     permission_classes = [IsAuthenticated]
-    queryset = Post.objects.select_related("hashtags")
+    queryset = (
+        Post.objects
+        .select_related("author")
+        .prefetch_related("hashtags")
+        .prefetch_related("comments")
+        .prefetch_related("likes")
+    )
 
     def get_queryset(self) -> QuerySet:
         """Retrieve the posts with filters"""
         followed_users = self.request.user.profile.followers.all()
-        queryset = Post.objects.filter(author__in=followed_users)
+        queryset = self.queryset.filter(author__in=followed_users)
+        # queryset = Post.objects.filter(author__in=followed_users)
         hashtags = self.request.query_params.get("hashtags")
 
         if hashtags:
