@@ -2,13 +2,13 @@ from typing import Type
 
 from django.contrib.auth import get_user_model
 from django.db.models import QuerySet
-from django.http import HttpResponse
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import generics, viewsets, mixins, status
 from rest_framework.decorators import api_view
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.request import Request
+from rest_framework.response import Response
 from rest_framework.serializers import Serializer
 from rest_framework.settings import api_settings
 
@@ -124,4 +124,4 @@ def toggle_following_user(request, pk):
     else:
         following.profile.followers.add(user.id)
 
-    return HttpResponse(status=status.HTTP_200_OK)
+    return Response(status=status.HTTP_200_OK)
