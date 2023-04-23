@@ -4,7 +4,6 @@ from .views import (
     CreatePostView,
     PostListView,
     PostViewSet,
-    schedule_post,
     like_post, LikedPostList,
 )
 
@@ -18,7 +17,6 @@ urlpatterns = [
         name="my_posts"
     ),
     path("create/", CreatePostView.as_view(), name="post-create"),
-    path("<int:post_id>/schedule/", schedule_post, name="schedule_post"),
     path("<int:pk>/like/", like_post, name="like-post"),
     path("liked/", LikedPostList.as_view(), name="liked-post-list"),
 ]

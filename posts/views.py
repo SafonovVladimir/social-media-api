@@ -6,10 +6,8 @@ from rest_framework import generics, viewsets, status
 from rest_framework.decorators import action, api_view
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from django.utils import timezone
 
 from .models import Post, Comment
-from .tasks import create_post
 from .serializers import PostSerializer, CommentSerializer
 
 
@@ -86,47 +84,6 @@ class LikedPostList(generics.ListAPIView):
     def get_queryset(self):
         user = self.request.user
         return Post.objects.filter(likes=user)
-
-
-@api_view(["GET"])
-def schedule_post(request, post_id: int) -> Response:
-    print(request.data)
-    print(post_id)
-    try:
-        post = Post.objects.get(id=post_id)
-        serializer = PostSerializer(post)
-    except Post.DoesNotExist:
-        return Response(status=status.HTTP_404_NOT_FOUND)
-
-    publish_time = request.data.get("publish_time")
-    print(publish_time)
-
-    if not publish_time:
-        return Response(
-            serializer.errors,
-            status=status.HTTP_400_BAD_REQUEST
-        )
-
-    try:
-        publish_time = timezone.make_aware(publish_time)
-    except ValueError:
-        return Response(
-            serializer.errors,
-            status=status.HTTP_400_BAD_REQUEST
-        )
-
-    try:
-        post.schedule_publish(publish_time)
-        create_post.apply_async(
-            args=[post.title, post.content],
-            eta=publish_time
-        )
-        return Response(
-            serializer.data,
-            status=status.HTTP_200_OK
-        )
-    except ValidationError:
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(["GET"])
