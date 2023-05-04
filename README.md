@@ -32,3 +32,7 @@ The following endpoints are available:
 
 ### Documentations
 - api/doc/swagger/: Documentations using Swagger
+
+![](readme_pictures\1.jpg)
+
+![](readme_pictures\2.jpg)
