@@ -7,8 +7,9 @@ The API allows users to create profiles, follow other users, create and retrieve
 git clone https://github.com/SafonovVladimir/social-media-api.git
 cd social_media_api
 python3 -m venv venv
-source venv/bin/activete # for linux or macOS
-venv\Scripts\activete # for Windows
+source venv/bin/activate # for linux or macOS
+venv\Scripts\activate # for Windows
+python manage.py runserver
 ```
 
  The API will be available at http://localhost:8000/.
