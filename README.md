@@ -22,13 +22,13 @@ The following endpoints are available:
 - api/user/token/refresh/: Refresh a token
 - api/user/token/verify/: Verify a token
 - api/user/me/: User information
-- api/user/<int:pk>/follow/: Follow/Unfollow another user by providing their user ID.
+- api/user/<int:pk>/follow/: Follow/Unfollow another user by user ID.
 
 ### Post Creation and Retrieval
 - api/post/feed/: Retrieve a list of all posts.
 - api/post/my-posts/: User's posts
-- api/post/create/: Create a new post by providing text content and media attachments (optional).
-- api/post/<int:pk>/like/: Like/Unlike a post by providing the ID of the post.
+- api/post/create/: Create a new post.
+- api/post/<int:pk>/like/: Like/Unlike a post by ID of the post.
 - api/post/liked/: Retrieve a list of all posts liked by the currently authenticated user.
 
 ### Documentations
